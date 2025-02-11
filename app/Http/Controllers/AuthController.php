@@ -10,7 +10,11 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function register(Request $request) {
+
+    public function register(Request $request)
+     {
+    
+
         $request->validate([
             'username' => 'required|string|unique:users',
             'userpwd' => 'required|string|min:6',
@@ -39,7 +43,7 @@ class AuthController extends Controller
             'userpwd' => 'required|string'
         ]);
 
-        $user = User::where('username', $request->username)->first();
+        $user = User::where('email', $request->username)->first();
 
         if (!$user || !Hash::check($request->userpwd, $user->userpwd)) {
             throw ValidationException::withMessages([
