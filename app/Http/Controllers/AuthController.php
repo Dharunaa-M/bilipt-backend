@@ -5,68 +5,73 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
-
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-
+    // Register API
     public function register(Request $request)
-     {
-    
-
-        $request->validate([
-            'username' => 'required|string|unique:users',
-            'userpwd' => 'required|string|min:6',
-            'email' => 'required|string|email|unique:users'
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|unique:users',
+            'password' => 'required|string|min:6|confirmed',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
 
         $user = User::create([
-            'name' => $request->username,
-            'password' => Hash::make($request->userpwd),
-            'email' => $request->email
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = JWTAuth::fromUser($user);
 
         return response()->json([
             'message' => 'User registered successfully',
-            'token' => $token,
-            'user' => $user
-        ], 201);
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ]);
     }
 
-    // User Login
-    public function login(Request $request) {
-        $request->validate([
-            'username' => 'required|string',
-            'userpwd' => 'required|string'
-        ]);
+    // Login API
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
 
-        $user = User::where('email', $request->username)->first();
-
-        if (!$user || !Hash::check($request->userpwd, $user->userpwd)) {
-            throw ValidationException::withMessages([
-                'message' => ['Invalid credentials']
-            ]);
+        if (!$token = JWTAuth::attempt($credentials)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
-            'message' => 'Login successful',
-            'token' => $token,
-            'user' => $user
-        ], 200);
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ]);
     }
 
-    // User Logout
-    public function logout(Request $request) {
-        $request->user()->tokens()->delete();
-
-        return response()->json([
-            'message' => 'Logout successful'
-        ], 200);
+    // Get Authenticated User
+    public function me()
+    {
+        return response()->json(auth()->user());
     }
 
+    // Logout API
+    public function logout()
+    {
+        auth()->logout();
+        return response()->json(['message' => 'User logged out successfully']);
+    }
+
+    // Refresh Token API
+    public function refresh()
+    {
+        return response()->json([
+            'access_token' => auth()->refresh(),
+            'token_type' => 'Bearer',
+        ]);
+    }
 }
