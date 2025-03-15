@@ -10,17 +10,16 @@ class ProductController extends Controller
     // Insert Product
     public function store(Request $request)
     {
-        $request->validate([
-            'pdt_name' => 'required|string|max:255',
-            'pdt_category' => 'required|string|max:255',
-            'brandname' => 'required|string|max:255',
-            'baseprice' => 'required|numeric|min:0',
-            'salesrate' => 'required|numeric|min:0',
-            'tax_id' => 'required|exists:tax,tax_id', // Assuming tax_id references a taxes table
-            'unitname' => 'required|string|max:100',
+        
+        $product = Product::create([
+            'pdt_name' => $request-> pdt_name,
+            'pdt_category' => $request-> pdt_category,
+            'brandname' => $request-> brandname,
+            'baseprice' => $request-> baseprice,
+            'salesrate' => $request-> salesrate,
+            'tax_id' => $request-> tax_id,
+            'unitname' => $request-> unitname,
         ]);
-
-        $product = Product::create($request->all());
 
         //return response()->json(['message' => 'Product created successfully', 'product' => $product], 201);
     }
