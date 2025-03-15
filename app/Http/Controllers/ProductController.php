@@ -22,7 +22,7 @@ class ProductController extends Controller
 
         $product = Product::create($request->all());
 
-        return response()->json(['message' => 'Product created successfully', 'product' => $product], 201);
+        //return response()->json(['message' => 'Product created successfully', 'product' => $product], 201);
     }
 
     // Update Product
