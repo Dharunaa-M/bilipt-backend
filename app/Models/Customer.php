@@ -14,7 +14,6 @@ class Customer extends Model
     public $timestamps = false; 
 
     protected $fillable = [
-        'customer_id',
         'customer_name',
         'customer_email',
         'customer_phone',
